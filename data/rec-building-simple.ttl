@@ -1,0 +1,39 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix core: <https://w3id.org/rec/core/> .
+@prefix props: <https://w3id.org/rec/props/> .
+@prefix ref: <https://w3id.org/rec/ref/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix ex: <http://example.com/building#> .
+
+ex:building_rec a core:Building ;
+    rdfs:label "Example Office Building (REC)" ;
+    props:hasAddress "123 Main St, Anytown, USA" ;
+    props:hasGeometry [
+        a geo:Geometry ;
+        geo:asWKT "POLYGON((0 0, 0 100, 100 100, 100 0, 0 0))"^^geo:wktLiteral
+    ] .
+
+ex:floor_1 a core:Floor ;
+    rdfs:label "First Floor" ;
+    core:isPartOfBuilding ex:building_rec ;
+    props:hasLevel "1"^^xsd:integer .
+
+ex:room_101 a core:Room ;
+    rdfs:label "Room 101" ;
+    core:isPartOfFloor ex:floor_1 ;
+    props:hasGeometry [
+        a geo:Geometry ;
+        geo:asWKT "POLYGON((10 10, 10 20, 20 20, 20 10, 10 10))"^^geo:wktLiteral
+    ] ;
+    props:hasArea [
+        a core:Area ;
+        props:hasValue "100"^^xsd:decimal ;
+        props:hasUnit ref:AreaSquareMeter
+    ] .
+
+ex:office_space_A a core:Office ;
+    rdfs:label "Office Space A" ;
+    core:isPartOfSpace ex:room_101 .
+

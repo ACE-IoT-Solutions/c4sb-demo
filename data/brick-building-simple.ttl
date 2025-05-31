@@ -1,0 +1,30 @@
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix tag: <https://brickschema.org/schema/BrickTag#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://example.com/building#> .
+
+ex:building a brick:Building ;
+    rdfs:label "Example Office Building" .
+
+ex:roof a brick:Roof ;
+    rdfs:label "Building Roof" ;
+    brick:isPartOf ex:building .
+
+ex:hvac_zone_1 a brick:HVAC_Zone ;
+    rdfs:label "HVAC Zone 1" ;
+    brick:isPartOf ex:building .
+
+ex:rtu_1 a brick:RTU ;
+    rdfs:label "Rooftop HVAC Unit 1" ;
+    brick:isPartOf ex:building ;
+    brick:hasLocation ex:roof ; # Added location
+    brick:feeds ex:hvac_zone_1 ; # Added relationship to HVAC zone
+    brick:hasPoint ex:rtu_1_dat, ex:rtu_1_fan_cmd . # Added points
+
+ex:rtu_1_dat a brick:Discharge_Air_Temperature_Sensor ;
+    rdfs:label "RTU 1 Discharge Air Temperature Sensor" .
+
+ex:rtu_1_fan_cmd a brick:Fan_Command ;
+    rdfs:label "RTU 1 Fan Command" .
+

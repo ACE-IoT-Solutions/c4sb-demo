@@ -1,0 +1,110 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix s223: <http://data.ashrae.org/standard223#> .
+@prefix unit: <http://qudt.org/vocab/unit/> .
+@prefix quantitykind: <http://qudt.org/vocab/quantitykind/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix ex: <http://example.com/mybuilding#> .
+
+ex:RTU-1_ElectricalInlet a s223:InletConnectionPoint ;
+    s223:hasMedium s223:AC-208VLL-3Ph-60Hz ;
+    s223:hasTag "electrical", "inlet" .
+
+ex:RTU-1 a s223:AirHandlingUnit ;
+    s223:hasComponent ex:RTU-1_SupplyFan, ex:RTU-1_CoolingCoil, ex:RTU-1_HeatingCoil, ex:RTU-1_EconomizerDamper, ex:RTU-1_Compressor-1 ; # Added Compressor
+    s223:hasConnectionPoint ex:RTU-1_ElectricalInlet ; # Added electrical inlet connection point
+    s223:hasDescription "Rooftop Unit 1" ;
+    s223:hasTag "hvac" , "rtu" ;
+    s223:isLocatedIn ex:Zone-1 .
+
+ex:RTU-1_SupplyFan a s223:Fan ;
+    s223:hasDescription "Supply Fan for RTU-1" ;
+    s223:hasTag "fan" ;
+    s223:hasPoint ex:RTU-1_SupplyFan_SpeedSensor, ex:RTU-1_SupplyFan_PowerSensor, ex:RTU-1_SupplyFan_Status .
+
+ex:RTU-1_CoolingCoil a s223:CoolingCoil ;
+    s223:hasDescription "Cooling Coil for RTU-1" ;
+    s223:hasTag "coil" , "cooling" ;
+    s223:hasPoint ex:RTU-1_CoolingCoil_ValvePositionSensor .
+
+ex:RTU-1_HeatingCoil a s223:HeatingCoil ;
+    s223:hasDescription "Heating Coil for RTU-1" ;
+    s223:hasTag "coil" , "heating" ;
+    s223:hasPoint ex:RTU-1_HeatingCoil_ValvePositionSensor .
+
+ex:RTU-1_EconomizerDamper a s223:Damper ;
+    s223:hasDescription "Economizer Damper for RTU-1" ;
+    s223:hasTag "damper" , "economizer" ;
+    s223:hasPoint ex:RTU-1_EconomizerDamper_PositionSensor .
+
+ex:RTU-1_Compressor-1 a s223:Compressor ;
+    s223:hasDescription "Compressor 1 for RTU-1" ;
+    s223:hasTag "compressor" .
+
+ex:RTU-1_SupplyFan_SpeedSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1_SupplyFan ;
+    s223:hasQuantityKind quantitykind:Frequency ;
+    s223:hasUnit unit:HZ ;
+    s223:hasTag "sensor" , "speed" .
+
+ex:RTU-1_SupplyFan_PowerSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1_SupplyFan ;
+    s223:hasQuantityKind quantitykind:Power ;
+    s223:hasUnit unit:W ;
+    s223:hasTag "sensor" , "power" .
+
+ex:RTU-1_CoolingCoil_ValvePositionSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1_CoolingCoil ;
+    s223:hasQuantityKind quantitykind:Dimensionless ; 
+    s223:hasUnit unit:PERCENT ;
+    s223:hasTag "sensor" , "position" .
+
+ex:RTU-1_HeatingCoil_ValvePositionSensor a s223:Sensor ; 
+    s223:isPointOf ex:RTU-1_HeatingCoil ;
+    s223:hasQuantityKind quantitykind:Dimensionless ;
+    s223:hasUnit unit:PERCENT ;
+    s223:hasTag "sensor" , "position" .
+
+ex:RTU-1_EconomizerDamper_PositionSensor a s223:Sensor ; 
+    s223:isPointOf ex:RTU-1_EconomizerDamper ;
+    s223:hasQuantityKind quantitykind:Dimensionless ;
+    s223:hasUnit unit:PERCENT ;
+    s223:hasTag "sensor" , "position" .
+
+ex:Zone-1 a s223:Zone ;
+    s223:hasDescription "HVAC Zone 1" ;
+    s223:hasTag "zone" .
+
+ex:RTU-1_DischargeAirTemperatureSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1 ; 
+    s223:hasQuantityKind quantitykind:Temperature ;
+    s223:hasUnit unit:DEG_C ;
+    s223:hasTag "sensor", "temperature", "discharge" .
+
+ex:RTU-1_MixedAirTemperatureSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1 ;
+    s223:hasQuantityKind quantitykind:Temperature ;
+    s223:hasUnit unit:DEG_C ;
+    s223:hasTag "sensor", "temperature", "mixed" .
+
+ex:RTU-1_ReturnAirTemperatureSensor a s223:Sensor ;
+    s223:isPointOf ex:RTU-1 ;
+    s223:hasQuantityKind quantitykind:Temperature ;
+    s223:hasUnit unit:DEG_C ;
+    s223:hasTag "sensor", "temperature", "return" .
+
+ex:RTU-1_SupplyFan_Status a s223:State ;
+    s223:isPointOf ex:RTU-1_SupplyFan ;
+    s223:hasTag "status", "fan" .
+
+ex:RTU-1_FilterStatus a s223:State ;
+    s223:isPointOf ex:RTU-1 ; 
+    s223:hasTag "status", "filter" .
+
+ex:RTU-1_DischargeAirTemperatureSetpoint a s223:Parameter ;
+    s223:isPointOf ex:RTU-1 ;
+    s223:hasQuantityKind quantitykind:Temperature ;
+    s223:hasUnit unit:DEG_C ;
+    s223:hasTag "setpoint", "temperature", "discharge" .
