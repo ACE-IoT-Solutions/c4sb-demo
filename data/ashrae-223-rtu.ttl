@@ -12,6 +12,22 @@ ex:RTU-1_ElectricalInlet a s223:InletConnectionPoint ;
     s223:hasMedium s223:AC-208VLL-3Ph-60Hz ;
     s223:hasTag "electrical", "inlet" .
 
+# Added definition for the electrical medium with voltage details
+s223:AC-208VLL-3Ph-60Hz a s223:Medium ; # Assuming s223:Medium is a suitable class
+    s223:hasVoltage [
+        a s223:VoltageProperty ; # Placeholder type for the voltage characteristic
+        s223:hasVoltage [
+            a s223:VoltageMagnitude ; # Placeholder type for the voltage value structure
+            s223:hasValue "208.0"^^xsd:decimal ;
+            qudt:hasUnit unit:V ;
+            rdfs:label "208 Volts AC"
+        ] ;
+        rdfs:label "AC 208V Line-to-Line 3-Phase 60Hz"
+    ] .
+
+# Ensure unit:V has a label if it's used and not defined elsewhere with a label
+unit:V rdfs:label "V" .
+
 ex:RTU-1 a s223:AirHandlingUnit ;
     s223:hasComponent ex:RTU-1_SupplyFan, ex:RTU-1_CoolingCoil, ex:RTU-1_HeatingCoil, ex:RTU-1_EconomizerDamper, ex:RTU-1_Compressor-1 ; # Added Compressor
     s223:hasConnectionPoint ex:RTU-1_ElectricalInlet ; # Added electrical inlet connection point

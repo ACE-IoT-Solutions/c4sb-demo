@@ -5,14 +5,14 @@ from pathlib import Path
 from c4sb_demo.graph_operations import (
     create_combined_linked_graph,
     execute_sparql_query,
-    QUERY_1_BODY,
-    QUERY_2_BODY,
-    QUERY_3_BODY,
-    QUERY_4_BODY
 )
 from c4sb_demo.sparql_constants import (
     BRICK, REC_CORE, REC_PROPS, S223,
     RDFS_LABEL, RDF_TYPE, OWL_SAMEAS,
+    QUERY_1, 
+    QUERY_2, 
+    QUERY_3, 
+    QUERY_4
 )
 
 XSD_DOUBLE = rdflib.term.URIRef("http://www.w3.org/2001/XMLSchema#double")
@@ -69,8 +69,8 @@ def combined_graph(request): # Add request for finalizer
     return g_combined
 
 
-def assert_path_graph_basics(path_graph: rdflib.Graph, query_body_for_debug: str):
-    assert len(path_graph) > 0, f"Path graph is empty. Query body:\\n{query_body_for_debug}"
+def assert_path_graph_basics(path_graph: rdflib.Graph, query_definition_for_debug: dict):
+    assert len(path_graph) > 0, f"Path graph is empty. Query body:\\n{query_definition_for_debug['body']}"
     bound_prefixes = [p for p, _ in path_graph.namespaces()]
     assert "brick" in bound_prefixes, "brick prefix not bound in path_graph"
     assert "s223" in bound_prefixes, "s223 prefix not bound in path_graph"
@@ -78,7 +78,7 @@ def assert_path_graph_basics(path_graph: rdflib.Graph, query_body_for_debug: str
 
 # Test for Query 1 Results
 def test_query_1_results(combined_graph):
-    results_df, _ = execute_sparql_query(combined_graph, QUERY_1_BODY) # Ignore path_graph
+    results_df, _ = execute_sparql_query(combined_graph, QUERY_1) # Ignore path_graph
     assert results_df is not None, "Query 1 returned None DataFrame"
     assert not results_df.empty, "Query 1 returned an empty DataFrame"
     assert len(results_df) == 5, f"Query 1 expected 5 components, got {len(results_df)}"
@@ -88,9 +88,9 @@ def test_query_1_results(combined_graph):
 
 # Test for Query 1 Path Graph
 def test_query_1_path_graph(combined_graph):
-    _, path_graph = execute_sparql_query(combined_graph, QUERY_1_BODY) # Ignore results_df
+    _, path_graph = execute_sparql_query(combined_graph, QUERY_1) # Ignore results_df
     assert path_graph is not None, "Path graph should not be None for Query 1"
-    assert_path_graph_basics(path_graph, QUERY_1_BODY)
+    assert_path_graph_basics(path_graph, QUERY_1)
     # Use actual URIs from the data
     rtu1_uri = rdflib.URIRef("http://example.com/mybuilding#RTU-1")
     supply_fan_uri = rdflib.URIRef("http://example.com/mybuilding#RTU-1_SupplyFan") 
@@ -101,18 +101,17 @@ def test_query_1_path_graph(combined_graph):
 
 # Test for Query 2 Results
 def test_query_2_results(combined_graph):
-    results_df, _ = execute_sparql_query(combined_graph, QUERY_2_BODY) # Ignore path_graph
+    results_df, _ = execute_sparql_query(combined_graph, QUERY_2) # Ignore path_graph
     assert results_df is not None, "Query 2 returned None DataFrame"
     assert not results_df.empty, "Query 2 returned an empty DataFrame"
     assert str(results_df['sensor_label'].iloc[0]) == "RTU 1 Discharge Air Temperature Sensor"
     assert str(results_df['zone_label'].iloc[0]) == "HVAC Zone 1"
 
 # Test for Query 2 Path Graph (temporarily disabled)
-def _test_query_2_path_graph(combined_graph):
-    _, path_graph = execute_sparql_query(combined_graph, QUERY_2_BODY) # Ignore results_df
+def test_query_2_path_graph(combined_graph): # Renamed from _test_query_2_path_graph
+    _, path_graph = execute_sparql_query(combined_graph, QUERY_2) # Ignore results_df
     assert path_graph is not None, "Path graph should not be None for Query 2"
-    # Temporarily skip path graph assertions due to CONSTRUCT WHERE syntax issues
-    # assert_path_graph_basics(path_graph, QUERY_2_BODY)
+    assert_path_graph_basics(path_graph, QUERY_2) # Re-enabled assertion
     dat_sensor_uri = BRICK["RTU_1_DAT_Sensor"]
     zone1_uri = BRICK["Zone1"]
     rec_room101_uri = REC_CORE["Room101"]
@@ -131,7 +130,7 @@ def _test_query_2_path_graph(combined_graph):
 
 # Test for Query 3 Results
 def test_query_3_results(combined_graph):
-    results_df, _ = execute_sparql_query(combined_graph, QUERY_3_BODY) # Ignore path_graph
+    results_df, _ = execute_sparql_query(combined_graph, QUERY_3) # Ignore path_graph
     assert results_df is not None, "Query 3 returned None DataFrame"
     assert not results_df.empty, "Query 3 returned an empty DataFrame."
     assert "Rooftop Unit 1" in [str(val) for val in results_df['ashrae_rtu_description'].values]
@@ -140,9 +139,9 @@ def test_query_3_results(combined_graph):
 
 # Test for Query 3 Path Graph
 def test_query_3_path_graph(combined_graph):
-    _, path_graph = execute_sparql_query(combined_graph, QUERY_3_BODY) # Ignore results_df
+    _, path_graph = execute_sparql_query(combined_graph, QUERY_3) # Ignore results_df
     assert path_graph is not None, "Path graph should not be None for Query 3"
-    assert_path_graph_basics(path_graph, QUERY_3_BODY)
+    assert_path_graph_basics(path_graph, QUERY_3)
     rtu1_s223_uri = S223["RTU-1"]
     compressor1_s223_uri = S223["RTU-1-C1"]
     rec_room101_uri = REC_CORE["Room101"]
@@ -160,7 +159,7 @@ def test_query_3_path_graph(combined_graph):
 
 # Test for Query 4 Results
 def test_query_4_results(combined_graph):
-    results_df, _ = execute_sparql_query(combined_graph, QUERY_4_BODY) # Ignore path_graph
+    results_df, _ = execute_sparql_query(combined_graph, QUERY_4) # Ignore path_graph
     assert results_df is not None, "Query 4 returned None DataFrame"
     assert not results_df.empty, "Query 4 returned an empty DataFrame."
     assert len(results_df) == 1, f"Query 4 expected 1 row, got {len(results_df)}"
@@ -170,9 +169,9 @@ def test_query_4_results(combined_graph):
 
 # Test for Query 4 Path Graph
 def test_query_4_path_graph(combined_graph):
-    _, path_graph = execute_sparql_query(combined_graph, QUERY_4_BODY) # Ignore results_df
+    _, path_graph = execute_sparql_query(combined_graph, QUERY_4) # Ignore results_df
     assert path_graph is not None, "Path graph should not be None for Query 4"
-    assert_path_graph_basics(path_graph, QUERY_4_BODY)
+    assert_path_graph_basics(path_graph, QUERY_4)
     rtu1_s223_uri = S223["RTU-1"]
     voltage_bnode = None 
     for s, p, o in path_graph.triples((rtu1_s223_uri, S223.hasVoltage, None)):

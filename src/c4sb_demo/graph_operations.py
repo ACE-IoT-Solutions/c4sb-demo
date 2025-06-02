@@ -1,19 +1,14 @@
 import rdflib
 from rdflib.namespace import RDF, RDFS, OWL, Namespace 
 from rdflib.term import URIRef 
-
-import pandas as pd
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union # Removed cast, not needed with new approach
-import re
+from typing import Optional, List, Dict, Any, Union
+import pandas as pd
 
 from c4sb_demo.sparql_constants import (
     BRICK,      
     REC_CORE,   
     S223,       
-    NS_PROPS,   
-    QUDT,       
-    UNIT,       
     RDF_TYPE,
     OWL_SAMEAS,
     PREFIX_DICT
@@ -93,275 +88,25 @@ def _safe_bind_prefix(graph: rdflib.Graph, prefix: str, namespace_val: Union[Nam
 
 
 # SPARQL Query Definitions (cleaned and generalized)
-QUERY_1_BODY = """
-SELECT ?ashrae_rtu ?ashrae_component ?ashrae_component_label ?ashrae_component_type
-WHERE {
-    ?brick_rtu_instance a brick:RTU .
-    ?brick_rtu_instance owl:sameAs ?ashrae_rtu .
-    ?ashrae_rtu a s223:AirHandlingUnit .
-    ?ashrae_rtu s223:hasComponent ?ashrae_component .
-    OPTIONAL { ?ashrae_component rdfs:label ?lbl . }
-    OPTIONAL { ?ashrae_component s223:hasDescription ?desc . }
-    BIND(COALESCE(?lbl, ?desc, "No Label/Description") AS ?ashrae_component_label)
-    ?ashrae_component a ?ashrae_component_type .
-    FILTER(?ashrae_component_type != s223:Component && ?ashrae_component_type != owl:NamedIndividual) 
-}
-"""
+# These are now expected to be defined in sparql_constants.py as dictionaries
+# and passed to execute_sparql_query.
+# For example:
+# QUERY_1_DEFINITION = {
+# \\"body\\": \\"\\"\\"SELECT ... WHERE { ... }\\"\\"\\",
+# \\"construct_where_patterns\\": \\"\\"\\" ... triple patterns ... \\"\\"\\"
+# }
+# The old QUERY_1_BODY, QUERY_2_BODY etc. string constants are removed from this file.
 
-QUERY_2_BODY = """
-SELECT ?sensor_label ?zone_label ?rec_building_label ?rec_building_gross_area ?rec_room_label
-WHERE {
-    ?brick_building_instance a brick:Building .
-    ?brick_building_instance owl:sameAs ?rec_building .
-    ?brick_building_instance brick:hasPart ?brick_rtu_instance .
-
-    ?brick_rtu_instance a brick:RTU ;
-                        brick:hasPoint ?sensor ;
-                        brick:feeds ?zone .
-
-    ?sensor a brick:Discharge_Air_Temperature_Sensor ;
-            rdfs:label ?sensor_label .
-    
-    ?zone rdfs:label ?zone_label .
-    
-    ?rec_building rdfs:label ?rec_building_label .
-    OPTIONAL { ?rec_building props:hasArea [ props:hasValue ?rec_building_gross_area ] . }
-    
-    OPTIONAL { 
-        ?zone owl:sameAs ?rec_room . 
-        ?rec_room rdfs:label ?rec_room_label .
-    }
-}
-"""
-
-QUERY_3_BODY = """
-SELECT ?ashrae_rtu_description ?compressor_description ?brick_rtu_label ?rec_room_label ?rec_room_area
-WHERE {
-    ?ashrae_rtu a s223:AirHandlingUnit ;
-                s223:hasDescription ?ashrae_rtu_description ;
-                s223:hasComponent ?compressor .
-    ?compressor a s223:Compressor ;
-                s223:hasDescription ?compressor_description .
-    ?brick_rtu owl:sameAs ?ashrae_rtu .
-    ?brick_rtu rdfs:label ?brick_rtu_label ;
-               brick:feeds ?brick_hvac_zone .
-    ?brick_hvac_zone owl:sameAs ?rec_room .
-    ?rec_room rdfs:label ?rec_room_label .
-    OPTIONAL { ?rec_room props:hasArea [ props:hasValue ?rec_room_area ] . } 
-}
-"""
-
-QUERY_4_BODY = """
-SELECT ?ashrae_ahu_description ?voltage_value ?voltage_unit_label
-WHERE {
-    ?rec_room_instance a rec:Room .
-    ?brick_zone_instance owl:sameAs ?rec_room_instance ;
-                         a brick:HVAC_Zone .
-    ?brick_ahu_instance brick:feeds ?brick_zone_instance ;
-                        owl:sameAs ?ashrae_ahu .
-
-    ?ashrae_ahu a s223:AirHandlingUnit ;
-                s223:hasDescription ?ashrae_ahu_description ;
-                s223:hasConnectionPoint ?electrical_inlet .
-
-    ?electrical_inlet a s223:InletConnectionPoint ;
-                      s223:hasMedium ?medium_instance .
-
-    # ?medium_instance a s223:Electricity . # This was too restrictive
-    ?medium_instance s223:hasVoltage ?voltage_type_instance .
-    ?voltage_type_instance s223:hasVoltage ?voltage_value_instance .
-    ?voltage_value_instance s223:hasValue ?voltage_value .
-    # ?voltage_value_instance s223:hasUnit ?voltage_unit_instance . # QUDT is used in s223 data
-    ?voltage_value_instance qudt:hasUnit ?voltage_unit_instance .
-    OPTIONAL { ?voltage_unit_instance rdfs:label ?voltage_unit_label_temp . }
-    BIND(COALESCE(?voltage_unit_label_temp, STRAFTER(STR(?voltage_unit_instance), STR(unit:))) AS ?voltage_unit_label)
-}
-"""
-
-def get_where_clause_content(sparql_query_body: str) -> Optional[str]:
-    """
-    Extracts the content of the main WHERE clause from a SPARQL query body.
-    Handles basic nested braces within the WHERE clause.
-    Filters out OPTIONAL, BIND, and FILTER clauses for CONSTRUCT WHERE compatibility.
-    """
-    # print(f"DEBUG get_where_clause_content: Input query body:\\n{sparql_query_body}") # Uncomment for debugging
-    # Find the start of the WHERE clause, case insensitive
-    # Regex looks for WHERE, optional whitespace, then {
-    where_match = re.search(r"WHERE\s*\{", sparql_query_body, re.IGNORECASE | re.DOTALL)
-    if not where_match:
-        print("DEBUG get_where_clause_content: No WHERE clause found.") # Added
-        return None
-
-    # Index of the opening brace '{'
-    start_brace_index = where_match.end() - 1 
-    # Content starts after this brace
-    content_start_index = start_brace_index + 1
-    
-    brace_level = 0
-    # Iterate from the position of the first opening brace in the relevant part of the string
-    for i, char in enumerate(sparql_query_body[start_brace_index:]):
-        if char == '{':
-            brace_level += 1
-        elif char == '}':
-            brace_level -= 1
-            if brace_level == 0:
-                # Found the matching closing brace for the main WHERE clause
-                # The content is from after the first '{' (content_start_index)
-                # to before this closing '}' (start_brace_index + i)
-                extracted_content = sparql_query_body[content_start_index : start_brace_index + i].strip()
-                # Filter out OPTIONAL, BIND, and FILTER for CONSTRUCT WHERE compatibility
-                filtered_content = _filter_for_construct_where(extracted_content)
-                # print(f"DEBUG get_where_clause_content: Extracted content:\\n{filtered_content}") # Uncomment for debugging
-                return filtered_content
-    
-    print("DEBUG get_where_clause_content: Matching closing brace not found.") # Added
-    return None # Should not happen if query is well-formed and WHERE clause exists
-
-def _filter_for_construct_where(where_content: str) -> str:
-    """
-    Filters WHERE clause content to be compatible with CONSTRUCT WHERE.
-    Removes OPTIONAL, BIND, and FILTER clauses, and attempts to correctly
-    format triple patterns, including those using semicolon notation.
-    """
-    content = where_content
-    
-    # Remove OPTIONAL blocks (including nested braces)
-    import re # Ensure re is available
-    while True:
-        optional_match = re.search(r'OPTIONAL\\s*\\{', content, re.IGNORECASE | re.DOTALL)
-        if not optional_match:
-            break
-        
-        start = optional_match.start()
-        brace_start = optional_match.end() - 1
-        brace_count = 0
-        end = brace_start # Initialize end here
-        
-        # Find matching brace for the OPTIONAL block
-        for i, char in enumerate(content[brace_start:]):
-            if char == '{':
-                brace_count += 1
-            elif char == '}':
-                brace_count -= 1
-                if brace_count == 0:
-                    end = brace_start + i + 1
-                    break
-        if end == brace_start: # Safety check if matching brace wasn't found
-            # This indicates a malformed OPTIONAL block or an issue with the loop
-            # For now, break to avoid infinite loop if 'end' isn't updated
-            print(f"Warning: Could not find matching brace for OPTIONAL block starting at index {start}.")
-            break 
-            
-        content = content[:start] + content[end:]
-    
-    lines = content.split('\\n')
-    filtered_lines = []
-    current_subject = None  # Initialize current_subject outside the loop
-
-    for line_content in lines: # Renamed 'line' to 'line_content' to avoid conflict with 'lines' list
-        line_stripped = line_content.strip()
-
-        if (not line_stripped or line_stripped.startswith('#') or
-            line_stripped.upper().startswith('BIND') or 
-            line_stripped.upper().startswith('FILTER')):
-            # For BIND/FILTER, we might not want to reset current_subject if they are inline
-            # However, for simplicity now, let's continue.
-            continue
-        
-        # Heuristic to identify if a line starts with a subject-like token
-        # (variable, IRI, or prefixed name)
-        def looks_like_subject(token):
-            return token.startswith('?') or token.startswith('<') or \
-                   (':' in token and not token.startswith('_:')) or \
-                   token.startswith('_:')
-
-        # Heuristic to identify if a line starts with a predicate-like token
-        # (variable, IRI, prefixed name, or 'a')
-        def looks_like_predicate(token):
-            return looks_like_subject(token) or token.lower() == 'a'
-
-        if ';' in line_stripped:
-            parts = line_stripped.split(';')
-            for i, part_str in enumerate(parts):
-                part_stripped = part_str.strip()
-                if not part_stripped:
-                    continue
-
-                tokens = part_stripped.split(None, 2 # Max split: subject, predicate, object
-                )
-                
-                if i == 0: # First part of a semicolon list, e.g., "?s ?p1 ?o1"
-                    if len(tokens) >= 2 and looks_like_subject(tokens[0]):
-                        current_subject = tokens[0]
-                        # Reconstruct the triple carefully
-                        if len(tokens) == 3: # s p o
-                            triple = f"{tokens[0]} {tokens[1]} {tokens[2]}"
-                            if not triple.endswith('.'): 
-                                triple += " ."
-                            filtered_lines.append(triple)
-                        elif len(tokens) == 2: # s p (object might be implied or missing)
-                            # This case is tricky if object is truly missing before ';'
-                            # For now, assume it's a complete s p o or s p.
-                            # If it's just 's p', it might be an error or part of a path
-                            # Let's assume 's p o' for simplicity if 3 tokens, else it's more complex
-                            # This part of the original logic was complex and potentially problematic.
-                            # For now, we rely on having s p o.
-                            pass # Handled by len(tokens) == 3
-                    else: # Malformed first part
-                        current_subject = None # Reset if first part isn't a clear subject start
-                        if part_stripped: # If it's not empty, add it as is (risky)
-                             final_part = part_stripped
-                             if not final_part.endswith('.'): 
-                                 final_part += " ."
-                             filtered_lines.append(final_part)
-                else: # Subsequent parts, e.g., "?p2 ?o2"
-                    if current_subject and len(tokens) >= 2 and looks_like_predicate(tokens[0]): # p o
-                        predicate = tokens[0]
-                        obj = tokens[1] if len(tokens) > 1 else ""
-                        triple = f"{current_subject} {predicate} {obj}"
-                        if not triple.endswith('.'): 
-                            triple += " ."
-                        filtered_lines.append(triple)
-                    elif part_stripped: # No current subject or malformed p o
-                         final_part = part_stripped
-                         if not final_part.endswith('.'): 
-                             final_part += " ."
-                         filtered_lines.append(final_part) # Risky: add as is
-        else: # No semicolon in line_stripped
-            tokens = line_stripped.split(None, 2) # s p o or p o or just s
-            if len(tokens) >= 1:
-                first_token = tokens[0]
-                if looks_like_subject(first_token) and len(tokens) >= 3: # Looks like a new s p o triple
-                    current_subject = first_token
-                    final_line = line_stripped
-                    if not final_line.endswith('.'): 
-                        final_line += " ."
-                    filtered_lines.append(final_line)
-                elif current_subject and looks_like_predicate(first_token) and len(tokens) >= 2 : # Looks like p o, needs current_subject
-                    final_line = f"{current_subject} {line_stripped}"
-                    if not final_line.endswith('.'): 
-                        final_line += " ."
-                    filtered_lines.append(final_line)
-                elif line_stripped: # Fallback: not clearly s p o or p o with active subject. Add as is.
-                    # This could be a full triple not caught above, or problematic.
-                    # Try to determine if it's a new subject if current_subject is None
-                    if not current_subject and looks_like_subject(first_token) and len(tokens)>=2:
-                        current_subject = first_token # Tentatively set subject
-                    
-                    final_line = line_stripped
-                    if not final_line.endswith('.'): 
-                        final_line += " ."
-                    filtered_lines.append(final_line)
-            elif line_stripped: # e.g. just a single token, unlikely valid but preserve
-                filtered_lines.append(line_stripped)
-                
-    return '\\n'.join(filtered_lines)
-
-def execute_sparql_query(graph: rdflib.Graph, query_body: str) -> tuple[Optional[pd.DataFrame], Optional[rdflib.Graph]]:
+def execute_sparql_query(graph: rdflib.Graph, query_definition: Dict[str, str]) -> tuple[Optional[pd.DataFrame], Optional[rdflib.Graph]]:
     if graph is None:
         print("DEBUG: execute_sparql_query called with None graph.")
         return None, None
     
+    query_body = query_definition.get("body")
+    if not query_body:
+        print("DEBUG: Query definition does not contain a 'body'.")
+        return None, None
+
     print(f"DEBUG: Input graph to execute_sparql_query has {len(graph)} triples.")
     # print(f"DEBUG: Query body:\\n{query_body}") # Uncomment to see full query
 
@@ -387,19 +132,17 @@ def execute_sparql_query(graph: rdflib.Graph, query_body: str) -> tuple[Optional
         if results.type == 'ASK':
             df = pd.DataFrame([{'ASK_RESULT': results.askAnswer}])
             print(f"DEBUG ASK result: {results.askAnswer}")
-            where_content = get_where_clause_content(query_body)
-            if where_content:
-                construct_query_for_ask = f"CONSTRUCT WHERE {{ {where_content} }}"
-                # print(f"DEBUG ASK CONSTRUCT query:\\\\n{construct_query_for_ask}") # Uncomment for debugging
+            
+            # New logic: Use pre-defined path_graph_ttl
+            ttl_data = query_definition.get("path_graph_ttl")
+            if ttl_data:
                 try:
-                    path_construct_results = graph.query(construct_query_for_ask, initNs=PREFIX_DICT)
-                    if path_construct_results.graph:
-                        print(f"DEBUG ASK: path_construct_results.graph has {len(path_construct_results.graph)} triples.")
-                        path_graph += path_construct_results.graph
-                    else:
-                        print("DEBUG ASK: path_construct_results.graph is None or empty.") # Added
-                except Exception as e_construct:
-                    print(f"Error constructing path_graph for ASK query: {e_construct}\\\\nQuery: {construct_query_for_ask[:300]}...")
+                    path_graph.parse(data=ttl_data, format="turtle")
+                    print(f"DEBUG ASK: Parsed TTL into path_graph, which now has {len(path_graph)} triples.")
+                except Exception as e_parse:
+                    print(f"Error parsing path_graph_ttl for ASK query: {e_parse}")
+            else:
+                print("DEBUG ASK: No 'path_graph_ttl' found in query_definition.")
 
         elif results.type == 'SELECT':
             data: List[Dict[str, Any]] = []
@@ -421,22 +164,16 @@ def execute_sparql_query(graph: rdflib.Graph, query_body: str) -> tuple[Optional
                     df = pd.DataFrame()
                 print("DEBUG SELECT: No bindings, empty DataFrame with defined columns created.")
 
-            # Enable path graph construction for SELECT queries
-            where_content = get_where_clause_content(query_body)
-            if where_content:
-                construct_query_for_select = f"CONSTRUCT WHERE {{ {where_content} }}"
-                # print(f"DEBUG SELECT CONSTRUCT query:\\\\n{construct_query_for_select}") # Uncomment for debugging
+            # New logic: Use pre-defined path_graph_ttl
+            ttl_data = query_definition.get("path_graph_ttl")
+            if ttl_data:
                 try:
-                    path_construct_results = graph.query(construct_query_for_select, initNs=PREFIX_DICT)
-                    if path_construct_results.graph:
-                        print(f"DEBUG SELECT: path_construct_results.graph has {len(path_construct_results.graph)} triples.")
-                        path_graph += path_construct_results.graph
-                    else:
-                        print("DEBUG SELECT: path_construct_results.graph is None or empty.")
-                except Exception as e_construct:
-                    print(f"Error constructing path_graph for SELECT query: {e_construct}\\\\\\nQuery: {construct_query_for_select[:300]}...")
+                    path_graph.parse(data=ttl_data, format="turtle")
+                    print(f"DEBUG SELECT: Parsed TTL into path_graph, which now has {len(path_graph)} triples.")
+                except Exception as e_parse:
+                    print(f"Error parsing path_graph_ttl for SELECT query: {e_parse}")
             else:
-                print("DEBUG SELECT: No WHERE clause content found for path_graph construction.")
+                print("DEBUG SELECT: No 'path_graph_ttl' found in query_definition.")
 
 
         elif results.type == 'CONSTRUCT':
@@ -496,8 +233,15 @@ def create_combined_linked_graph(
     # This assumes PREFIX_DICT contains the definitive set of prefixes and their Namespace objects
     if PREFIX_DICT:
         for prefix_key, namespace_obj_from_dict in PREFIX_DICT.items():
-            # Values in PREFIX_DICT should be rdflib.Namespace objects
-            _safe_bind_prefix(g, prefix_key, namespace_obj_from_dict)
+            # Values in PREFIX_DICT should be rdflib.Namespace objects or compatible for binding
+            # Ensure the type passed to _safe_bind_prefix is one it expects, converting if necessary.
+            if isinstance(namespace_obj_from_dict, (Namespace, URIRef, str)):
+                ns_to_bind = namespace_obj_from_dict
+            else:
+                # For types like rdflib.namespace.RDF (DefinedNamespaceMeta),
+                # convert to a Namespace object using its string URI.
+                ns_to_bind = Namespace(str(namespace_obj_from_dict))
+            _safe_bind_prefix(g, prefix_key, ns_to_bind)
     
     # If there are any prefixes critical for tests that might not be in PREFIX_DICT
     # or need a very specific Namespace object not aliased in PREFIX_DICT,

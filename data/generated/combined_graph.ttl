@@ -6,6 +6,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix props: <https://w3id.org/rec/props/> .
 @prefix quantitykind: <http://qudt.org/vocab/quantitykind/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix ref: <https://w3id.org/rec/ref/> .
 @prefix s223: <http://data.ashrae.org/standard223#> .
@@ -52,6 +53,14 @@ ex1:RTU-1_ReturnAirTemperatureSensor a s223:Sensor ;
         "temperature" ;
     s223:hasUnit unit:DEG_C ;
     s223:isPointOf ex1:RTU-1 .
+
+s223:AC-208VLL-3Ph-60Hz a s223:Medium ;
+    s223:hasVoltage [ a s223:VoltageProperty ;
+            rdfs:label "AC 208V Line-to-Line 3-Phase 60Hz" ;
+            s223:hasVoltage [ a s223:VoltageMagnitude ;
+                    rdfs:label "208 Volts AC" ;
+                    s223:hasValue 208.0 ;
+                    qudt:hasUnit unit:V ] ] .
 
 ex:floor_1 a core:Floor ;
     rdfs:label "First Floor" ;
@@ -125,6 +134,8 @@ ex1:RTU-1_SupplyFan_Status a s223:State ;
 ex1:Zone-1 a s223:Zone ;
     s223:hasDescription "HVAC Zone 1" ;
     s223:hasTag "zone" .
+
+unit:V rdfs:label "V" .
 
 ex:building_rec a core:Building ;
     rdfs:label "Example Office Building (REC)" ;

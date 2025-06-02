@@ -11,14 +11,14 @@ from c4sb_demo.graph_operations import (
     load_graph,
     create_combined_linked_graph,
     execute_sparql_query,
-    QUERY_1_BODY,
-    QUERY_2_BODY,
-    QUERY_3_BODY,
-    QUERY_4_BODY
 )
 from c4sb_demo.sparql_constants import (
     RDFS_LABEL,      # Used in get_node_label
     SKOS_PREF_LABEL,   # Used in get_node_label
+    QUERY_1,         # Added
+    QUERY_2,         # Added
+    QUERY_3,         # Added
+    QUERY_4          # Added
 )
 
 # Helper function to get a display label for a node (uses RDFS_LABEL, SKOS_PREFLABEL from graph_operations)
@@ -201,18 +201,18 @@ def run():
 
         st.subheader("SPARQL Queries on Combined Graph")
 
-        # Query 1 - Use imported QUERY_1_BODY
-        st.text_area("Query 1: ASHRAE Components for Brick RTU", QUERY_1_BODY, height=200, key="q1_text_area")
+        # Query 1 - Use imported QUERY_1 dictionary
+        st.text_area("Query 1: ASHRAE Components for Brick RTU", QUERY_1["body"], height=200, key="q1_text_area")
         if st.button("Run Query 1", key="q1_run_button"):
             try:
-                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_1_BODY)
+                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_1) # Pass full dict
                 st.session_state['query1_results_df'] = results_df
                 st.session_state['query1_path_graph'] = path_graph
                 if results_df is None: # Check if execute_sparql_query itself returned None for df
                     st.error("Query 1 execution failed to produce tabular results (returned None).")
             except Exception as e:
                 st.error(f"Error running Query 1: {e}")
-                st.text_area("Query body (error context):", QUERY_1_BODY, height=100, key="q1_error_query_body")
+                st.text_area("Query body (error context):", QUERY_1["body"], height=100, key="q1_error_query_body")
                 st.session_state['query1_results_df'] = None 
                 st.session_state['query1_path_graph'] = None
 
@@ -238,18 +238,18 @@ def run():
                     st.info("The path graph for Query 1 is empty or contains no triples.")
                 # else: path_graph might be None or not a graph, handled by not displaying
         
-        # Query 2 - Use imported QUERY_2_BODY
-        st.text_area("Query 2: Brick Sensor Context with REC Links", QUERY_2_BODY, height=250, key="q2_text_area")
+        # Query 2 - Use imported QUERY_2 dictionary
+        st.text_area("Query 2: Brick Sensor Context with REC Links", QUERY_2["body"], height=250, key="q2_text_area")
         if st.button("Run Query 2", key="q2_run_button"):
             try:
-                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_2_BODY)
+                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_2) # Pass full dict
                 st.session_state['query2_results_df'] = results_df
                 st.session_state['query2_path_graph'] = path_graph
                 if results_df is None:
                     st.error("Query 2 execution failed to produce tabular results (returned None).")
             except Exception as e:
                 st.error(f"Error running Query 2: {e}")
-                st.text_area("Query body (error context):", QUERY_2_BODY, height=100, key="q2_error_query_body")
+                st.text_area("Query body (error context):", QUERY_2["body"], height=100, key="q2_error_query_body")
                 st.session_state['query2_results_df'] = None
                 st.session_state['query2_path_graph'] = None
 
@@ -271,18 +271,18 @@ def run():
                 elif isinstance(query2_path_graph, rdflib.Graph):
                     st.info("The path graph for Query 2 is empty or contains no triples.")
 
-        # Query 3 - Use imported QUERY_3_BODY
-        st.text_area("Query 3: ASHRAE Compressor, Linked Brick RTU, and REC Room Area", QUERY_3_BODY, height=250, key="q3_text_area")
+        # Query 3 - Use imported QUERY_3 dictionary
+        st.text_area("Query 3: ASHRAE Compressor, Linked Brick RTU, and REC Room Area", QUERY_3["body"], height=250, key="q3_text_area")
         if st.button("Run Query 3", key="q3_run_button"):
             try:
-                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_3_BODY)
+                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_3) # Pass full dict
                 st.session_state['query3_results_df'] = results_df
                 st.session_state['query3_path_graph'] = path_graph
                 if results_df is None:
                     st.error("Query 3 execution failed to produce tabular results (returned None).")
             except Exception as e:
                 st.error(f"Error running Query 3: {e}")
-                st.text_area("Query body (error context):", QUERY_3_BODY, height=100, key="q3_error_query_body")
+                st.text_area("Query body (error context):", QUERY_3["body"], height=100, key="q3_error_query_body")
                 st.session_state['query3_results_df'] = None
                 st.session_state['query3_path_graph'] = None
         
@@ -304,18 +304,18 @@ def run():
                 elif isinstance(query3_path_graph, rdflib.Graph):
                     st.info("The path graph for Query 3 is empty or contains no triples.")
 
-        # Query 4 - New Query for HVAC Voltage
-        st.text_area("Query 4: HVAC Unit Voltage for ex:room_101", QUERY_4_BODY, height=250, key="q4_text_area")
+        # Query 4 - Use imported QUERY_4 dictionary
+        st.text_area("Query 4: HVAC Unit Voltage for ex:room_101", QUERY_4["body"], height=250, key="q4_text_area")
         if st.button("Run Query 4", key="q4_run_button"):
             try:
-                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_4_BODY)
+                results_df, path_graph = execute_sparql_query(g_combined_linked, QUERY_4) # Pass full dict
                 st.session_state['query4_results_df'] = results_df
                 st.session_state['query4_path_graph'] = path_graph
                 if results_df is None:
                     st.error("Query 4 execution failed to produce tabular results (returned None).")
             except Exception as e:
                 st.error(f"Error running Query 4: {e}")
-                st.text_area("Query body (error context):", QUERY_4_BODY, height=100, key="q4_error_query_body")
+                st.text_area("Query body (error context):", QUERY_4["body"], height=100, key="q4_error_query_body")
                 st.session_state['query4_results_df'] = None
                 st.session_state['query4_path_graph'] = None
         
