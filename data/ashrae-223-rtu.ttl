@@ -57,6 +57,7 @@ ex:RTU-1_EconomizerDamper a s223:Damper ;
 
 ex:RTU-1_Compressor-1 a s223:Compressor ;
     s223:hasDescription "Compressor 1 for RTU-1" ;
+    s223:hasModelNumber "COMP-MODEL-XYZ789" ; # Added model number
     s223:hasTag "compressor" .
 
 ex:RTU-1_SupplyFan_SpeedSensor a s223:Sensor ;

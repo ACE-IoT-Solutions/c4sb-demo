@@ -31,9 +31,34 @@ ex:room_101 a core:Room ;
         a core:Area ;
         props:hasValue "100"^^xsd:decimal ;
         props:hasUnit ref:AreaSquareMeter
-    ] .
+    ] ;
+    core:containsAsset ex:desk_01, ex:desk_02, ex:desk_03, ex:desk_04, ex:desk_05,
+                       ex:desk_06, ex:desk_07, ex:desk_08, ex:desk_09, ex:desk_10,
+                       ex:desk_11, ex:desk_12, ex:desk_13, ex:desk_14, ex:desk_15,
+                       ex:desk_16, ex:desk_17, ex:desk_18, ex:desk_19, ex:desk_20 .
 
 ex:office_space_A a core:Office ;
     rdfs:label "Office Space A" ;
     core:isPartOfSpace ex:room_101 .
+
+ex:desk_01 a core:Desk ; rdfs:label "Desk 01" .
+ex:desk_02 a core:Desk ; rdfs:label "Desk 02" .
+ex:desk_03 a core:Desk ; rdfs:label "Desk 03" .
+ex:desk_04 a core:Desk ; rdfs:label "Desk 04" .
+ex:desk_05 a core:Desk ; rdfs:label "Desk 05" .
+ex:desk_06 a core:Desk ; rdfs:label "Desk 06" .
+ex:desk_07 a core:Desk ; rdfs:label "Desk 07" .
+ex:desk_08 a core:Desk ; rdfs:label "Desk 08" .
+ex:desk_09 a core:Desk ; rdfs:label "Desk 09" .
+ex:desk_10 a core:Desk ; rdfs:label "Desk 10" .
+ex:desk_11 a core:Desk ; rdfs:label "Desk 11" .
+ex:desk_12 a core:Desk ; rdfs:label "Desk 12" .
+ex:desk_13 a core:Desk ; rdfs:label "Desk 13" .
+ex:desk_14 a core:Desk ; rdfs:label "Desk 14" .
+ex:desk_15 a core:Desk ; rdfs:label "Desk 15" .
+ex:desk_16 a core:Desk ; rdfs:label "Desk 16" .
+ex:desk_17 a core:Desk ; rdfs:label "Desk 17" .
+ex:desk_18 a core:Desk ; rdfs:label "Desk 18" .
+ex:desk_19 a core:Desk ; rdfs:label "Desk 19" .
+ex:desk_20 a core:Desk ; rdfs:label "Desk 20" .
 

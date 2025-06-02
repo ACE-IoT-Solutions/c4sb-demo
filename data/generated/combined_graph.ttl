@@ -62,6 +62,66 @@ s223:AC-208VLL-3Ph-60Hz a s223:Medium ;
                     s223:hasValue 208.0 ;
                     qudt:hasUnit unit:V ] ] .
 
+ex:desk_01 a core:Desk ;
+    rdfs:label "Desk 01" .
+
+ex:desk_02 a core:Desk ;
+    rdfs:label "Desk 02" .
+
+ex:desk_03 a core:Desk ;
+    rdfs:label "Desk 03" .
+
+ex:desk_04 a core:Desk ;
+    rdfs:label "Desk 04" .
+
+ex:desk_05 a core:Desk ;
+    rdfs:label "Desk 05" .
+
+ex:desk_06 a core:Desk ;
+    rdfs:label "Desk 06" .
+
+ex:desk_07 a core:Desk ;
+    rdfs:label "Desk 07" .
+
+ex:desk_08 a core:Desk ;
+    rdfs:label "Desk 08" .
+
+ex:desk_09 a core:Desk ;
+    rdfs:label "Desk 09" .
+
+ex:desk_10 a core:Desk ;
+    rdfs:label "Desk 10" .
+
+ex:desk_11 a core:Desk ;
+    rdfs:label "Desk 11" .
+
+ex:desk_12 a core:Desk ;
+    rdfs:label "Desk 12" .
+
+ex:desk_13 a core:Desk ;
+    rdfs:label "Desk 13" .
+
+ex:desk_14 a core:Desk ;
+    rdfs:label "Desk 14" .
+
+ex:desk_15 a core:Desk ;
+    rdfs:label "Desk 15" .
+
+ex:desk_16 a core:Desk ;
+    rdfs:label "Desk 16" .
+
+ex:desk_17 a core:Desk ;
+    rdfs:label "Desk 17" .
+
+ex:desk_18 a core:Desk ;
+    rdfs:label "Desk 18" .
+
+ex:desk_19 a core:Desk ;
+    rdfs:label "Desk 19" .
+
+ex:desk_20 a core:Desk ;
+    rdfs:label "Desk 20" .
+
 ex:floor_1 a core:Floor ;
     rdfs:label "First Floor" ;
     core:isPartOfBuilding ex:building_rec ;
@@ -84,6 +144,7 @@ ex:rtu_1_fan_cmd a brick:Fan_Command ;
 
 ex1:RTU-1_Compressor-1 a s223:Compressor ;
     s223:hasDescription "Compressor 1 for RTU-1" ;
+    s223:hasModelNumber "COMP-MODEL-XYZ789" ;
     s223:hasTag "compressor" .
 
 ex1:RTU-1_CoolingCoil_ValvePositionSensor a s223:Sensor ;
@@ -154,6 +215,26 @@ ex:roof a brick:Roof ;
 
 ex:room_101 a core:Room ;
     rdfs:label "Room 101" ;
+    core:containsAsset ex:desk_01,
+        ex:desk_02,
+        ex:desk_03,
+        ex:desk_04,
+        ex:desk_05,
+        ex:desk_06,
+        ex:desk_07,
+        ex:desk_08,
+        ex:desk_09,
+        ex:desk_10,
+        ex:desk_11,
+        ex:desk_12,
+        ex:desk_13,
+        ex:desk_14,
+        ex:desk_15,
+        ex:desk_16,
+        ex:desk_17,
+        ex:desk_18,
+        ex:desk_19,
+        ex:desk_20 ;
     core:isPartOfFloor ex:floor_1 ;
     props:hasArea [ a core:Area ;
             props:hasUnit ref:AreaSquareMeter ;
