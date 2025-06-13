@@ -15,11 +15,15 @@ ex:hvac_zone_1 a brick:HVAC_Zone ;
     rdfs:label "HVAC Zone 1" ;
     brick:isPartOf ex:building .
 
+ex:hvac_zone_2 a brick:HVAC_Zone ;
+    rdfs:label "HVAC Zone 2" ;
+    brick:isPartOf ex:building .
+
 ex:rtu_1 a brick:RTU ;
     rdfs:label "Rooftop HVAC Unit 1" ;
     brick:isPartOf ex:building ;
     brick:hasLocation ex:roof ; # Added location
-    brick:feeds ex:hvac_zone_1 ; # Added relationship to HVAC zone
+    brick:feeds ex:hvac_zone_1, ex:hvac_zone_2 ; # Added relationship to HVAC zones
     brick:hasPoint ex:rtu_1_dat, ex:rtu_1_fan_cmd . # Added points
 
 ex:rtu_1_dat a brick:Discharge_Air_Temperature_Sensor ;

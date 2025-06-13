@@ -14,11 +14,12 @@ dependencies = [
     "rdflib>=7.1.4",
     "ruff>=0.11.11",
     "streamlit>=1.45.1",
+    "pyshacl>=0.25.0",
 ]
 
 [project.scripts]
-c4sb-demo = "cs4b_demo:main"
-c4sb-validate = "cs4b_demo:validate_graphs.main"
+c4sb-demo = "c4sb_demo:main"
+c4sb-validate = "c4sb_demo.validate_graphs:main"
 
 [build-system]
 requires = ["hatchling"]

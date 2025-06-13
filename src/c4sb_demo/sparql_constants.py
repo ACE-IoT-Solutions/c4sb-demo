@@ -87,7 +87,7 @@ rec:Desk2 a rec:Desk .
 
 QUERY_2 = {
     "body": """
-SELECT ?sensor_label ?zone_label ?rec_building_label ?rec_building_gross_area ?rec_room_label (COUNT(DISTINCT ?desk) AS ?affected_desks)
+SELECT ?sensor_label ?zone_label ?rec_building_label ?rec_building_gross_area (SUM(DISTINCT ?room_area_value) AS ?total_affected_area_sum) (COUNT(DISTINCT ?desk) AS ?affected_desks)
 WHERE {
     ?brick_building_instance a brick:Building .
     ?brick_building_instance owl:sameAs ?rec_building .
@@ -103,41 +103,59 @@ WHERE {
     ?zone rdfs:label ?zone_label .
     
     ?rec_building rdfs:label ?rec_building_label .
-    OPTIONAL { ?rec_building props:hasArea ?area_bn_q2 . ?area_bn_q2 props:hasValue ?rec_building_gross_area . }
+    OPTIONAL { ?rec_building props:grossArea ?rec_building_gross_area . } 
     
-    OPTIONAL { 
-        ?zone owl:sameAs ?rec_room . 
-        ?rec_room rdfs:label ?rec_room_label .
-        # Count desks in the REC room associated with the zone
-        ?rec_room rec:containsAsset ?desk .
-        ?desk a rec:Desk .
-    }
+    ?zone owl:sameAs ?rec_room . 
+    ?rec_room rdfs:label ?rec_room_label .
+    
+    ?rec_room props:hasArea [ props:hasValue ?room_area_value ] .
+    ?rec_room rec:containsAsset ?desk .
+    ?desk a rec:Desk .
 }
 GROUP BY ?sensor_label ?zone_label ?rec_building_label ?rec_building_gross_area ?rec_room_label
 """,
     "path_graph_ttl": PREFIXES + """
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-brick:RTU_1_DAT_Sensor brick:hasLocation brick:Zone1 ;
-    rdfs:label "RTU 1 Discharge Air Temperature Sensor" ;
-    a brick:Discharge_Air_Temperature_Sensor .
-brick:Zone1 brick:isPartOf rec:Room101 ; # This was incorrect, brick:isPartOf is not standard for zone to room. Using owl:sameAs
-    owl:sameAs rec:Room101 .
-rec:Room101 rec:isPartOf rec:Building123 ;
-    rdfs:label "Zone1's Room Label" ;
-    rec:containsAsset rec:Desk1, rec:Desk2, rec:Desk3 ; # Added desks for path
-    a rec:Room .
+brick:RTU_1_DAT_Sensor rdfs:label "RTU 1 Discharge Air Temperature Sensor" ;
+    a brick:Discharge_Air_Temperature_Sensor ;
+    brick:hasLocation brick:Zone1 .
+
+brick:Zone1 a brick:HVAC_Zone ; 
+    rdfs:label "Zone1 Label" ;
+    brick:isPartOf rec:Room101 .
+
+rec:Room101 a rec:Room ;
+    rdfs:label "Room 101 Label" ;
+    rec:isPartOf rec:Building123 ;
+    rec:containsAsset rec:Desk1, rec:Desk2 ;
+    props:hasArea [ props:hasValue "100.0"^^xsd:decimal ] .
 rec:Desk1 a rec:Desk .
 rec:Desk2 a rec:Desk .
+
+brick:Zone2 a brick:HVAC_Zone ;
+    rdfs:label "Zone2 Label" ;
+    brick:isPartOf rec:Room102 .
+rec:Room102 a rec:Room ;
+    rdfs:label "Room 102 Label" ;
+    rec:isPartOf rec:Building123 ;
+    rec:containsAsset rec:Desk3, rec:Desk4, rec:Desk5 ;
+    props:hasArea [ props:hasValue "150.0"^^xsd:decimal ] .
 rec:Desk3 a rec:Desk .
-rec:Building123 props:grossArea "50000.0"^^xsd:double ; # Corrected from props:hasArea to props:grossArea for consistency if it was a typo, or ensure data matches. Assuming it's a direct property.
+rec:Desk4 a rec:Desk .
+rec:Desk5 a rec:Desk .
+
+rec:Building123 a rec:Building ;
+    props:grossArea "50000.0"^^xsd:double ; # Changed props:hasArea [ props:hasValue ... ] to props:grossArea
     rdfs:label "Main Building Label" .
+
 brick:SomeBuildingForQ2 a brick:Building ;
     owl:sameAs rec:Building123 ;
-    brick:hasPart brick:SomeRTUForQ2 .
-brick:SomeRTUForQ2 a brick:RTU ;
+    brick:hasPart brick:RTU_1 .
+
+brick:RTU_1 a brick:RTU ;
     brick:hasPoint brick:RTU_1_DAT_Sensor ;
-    brick:feeds brick:Zone1 .
+    brick:feeds brick:Zone1, brick:Zone2 .
 """
 }
 

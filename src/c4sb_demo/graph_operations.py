@@ -1,5 +1,5 @@
 import rdflib
-from rdflib.namespace import RDF, RDFS, OWL, Namespace 
+from rdflib.namespace import  Namespace 
 from rdflib.term import URIRef 
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Union

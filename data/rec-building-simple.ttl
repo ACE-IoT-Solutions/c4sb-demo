@@ -62,3 +62,33 @@ ex:desk_18 a core:Desk ; rdfs:label "Desk 18" .
 ex:desk_19 a core:Desk ; rdfs:label "Desk 19" .
 ex:desk_20 a core:Desk ; rdfs:label "Desk 20" .
 
+ex:room_102 a core:Room ;
+    rdfs:label "Room 102" ;
+    core:isPartOfFloor ex:floor_1 ;
+    props:hasGeometry [
+        a geo:Geometry ;
+        geo:asWKT "POLYGON((30 10, 30 20, 40 20, 40 10, 30 10))"^^geo:wktLiteral
+    ] ;
+    props:hasArea [
+        a core:Area ;
+        props:hasValue "80"^^xsd:decimal ;
+        props:hasUnit ref:AreaSquareMeter
+    ] ;
+    core:containsAsset ex:desk_21, ex:desk_22, ex:desk_23, ex:desk_24, ex:desk_25,
+                       ex:desk_26, ex:desk_27, ex:desk_28, ex:desk_29, ex:desk_30 .
+
+ex:office_space_B a core:Office ;
+    rdfs:label "Office Space B" ;
+    core:isPartOfSpace ex:room_102 .
+
+ex:desk_21 a core:Desk ; rdfs:label "Desk 21" .
+ex:desk_22 a core:Desk ; rdfs:label "Desk 22" .
+ex:desk_23 a core:Desk ; rdfs:label "Desk 23" .
+ex:desk_24 a core:Desk ; rdfs:label "Desk 24" .
+ex:desk_25 a core:Desk ; rdfs:label "Desk 25" .
+ex:desk_26 a core:Desk ; rdfs:label "Desk 26" .
+ex:desk_27 a core:Desk ; rdfs:label "Desk 27" .
+ex:desk_28 a core:Desk ; rdfs:label "Desk 28" .
+ex:desk_29 a core:Desk ; rdfs:label "Desk 29" .
+ex:desk_30 a core:Desk ; rdfs:label "Desk 30" .
+
