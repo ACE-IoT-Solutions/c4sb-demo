@@ -18,6 +18,8 @@ The project includes sample data files and validation scripts to help users unde
 
 ## Installation
 
+### Using pip (Traditional)
+
 1.  **Clone the repository (if you haven't already):**
 
     ```bash
@@ -25,17 +27,41 @@ The project includes sample data files and validation scripts to help users unde
     cd c4sb-demo
     ```
 
-2.  **Create a virtual environment (recommended):**
+2.  **Create a virtual environment:**
 
     ```bash
     python -m venv .venv
-    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+    source .venv/bin/activate  # On Windows use `.venv\\Scripts\\activate`, for fish shell use `.venv/bin/activate.fish`
     ```
 
 3.  **Install the project and its dependencies:**
 
     ```bash
     pip install .
+    ```
+
+### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is an extremely fast Python package installer and resolver, written in Rust, and designed as a drop-in replacement for `pip` and `pip-tools` workflows.
+
+1.  **Clone the repository (if you haven't already):**
+
+    ```bash
+    git clone <your-repository-url>
+    cd c4sb-demo
+    ```
+
+2.  **Create a virtual environment:**
+
+    ```bash
+    uv venv
+    source .venv/bin/activate.fish # On Windows use `.venv\\Scripts\\activate`, for bash/zsh use `source .venv/bin/activate`
+    ```
+
+3.  **Install the project and its dependencies:**
+
+    ```bash
+    uv pip install .
     ```
 
 ## Usage
@@ -56,8 +82,16 @@ This project provides the following command-line scripts:
 
 ## Development
 
-To install development dependencies (like `pytest` and `watchdog`), run:
+To install development dependencies (like `pytest` and `watchdog`):
+
+Using pip:
 
 ```bash
 pip install .[dev]
+```
+
+Using uv:
+
+```bash
+uv pip install .[dev]
 ```
