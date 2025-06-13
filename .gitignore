@@ -138,4 +138,4 @@ cython_debug/
 
 
 # Generated files
-data/generated/*
+data/generated
