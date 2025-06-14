@@ -118,8 +118,8 @@ def display_graph_info(graph, title, key_suffix=""):
             st.error(traceback.format_exc())
 
 def run():
-    st.set_page_config(layout="wide")
-    st.title("Digital Twin Graph Explorer")
+    st.set_page_config(layout="wide", page_title="Building Lifecycle Semantic Interoperability Demo")
+    st.title("Building Lifecycle Semantic Interoperability Demo")
 
     # Initialize session state variables if they don't exist
     # Using dict syntax for session_state
